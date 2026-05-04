@@ -96,24 +96,6 @@ services:
       - web
 
 
-  paperless:
-    image: paperlessngx/paperless-ngx:latest
-    container_name: paperless
-
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.paperless.rule=Host(`paperless.tp3-2243223.duckdns.org`)"
-      - "traefik.http.routers.paperless.entrypoints=websecure"
-      - "traefik.http.routers.paperless.tls.certresolver=myresolver"
-      - "traefik.http.services.paperless.loadbalancer.server.port=8000"
-
-    volumes:
-      - paperless_data:/usr/src/paperless/data
-
-    networks:
-      - web
-
-
 volumes:
   portainer_data:
   nextcloud_data:
