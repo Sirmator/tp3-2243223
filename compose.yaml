@@ -4,14 +4,12 @@ services:
     image: traefik:v3.0
     container_name: traefik
 
-    environment:
-      - DOCKER_API_VERSION=1.41
-
     command:
       - --api.dashboard=true
       - --api.insecure=true
 
       - --providers.docker=true
+      - --providers.docker.endpoint=unix:///var/run/docker.sock
       - --providers.docker.exposedbydefault=false
 
       - --entrypoints.web.address=:80
@@ -21,7 +19,7 @@ services:
       - --entrypoints.web.http.redirections.entrypoint.to=websecure
       - --entrypoints.web.http.redirections.entrypoint.scheme=https
 
-      # SSL Let's Encrypt
+      # Let's Encrypt SSL
       - --certificatesresolvers.myresolver.acme.tlschallenge=true
       - --certificatesresolvers.myresolver.acme.email=${EMAIL}
       - --certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json
@@ -32,7 +30,7 @@ services:
       - "8080:8080"
 
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /var/run/docker.sock:/var/run/docker.sock
       - ./letsencrypt:/letsencrypt
 
     networks:
