@@ -1,39 +1,39 @@
 services:
 
   traefik:
-  image: traefik:v3.0
-  container_name: traefik
+    image: traefik:v3.0
+    container_name: traefik
 
-  environment:
-    - DOCKER_API_VERSION=1.41
+    environment:
+      - DOCKER_API_VERSION=1.41
 
-  command:
-    - --api.dashboard=true
-    - --api.insecure=true
-    - --providers.docker=true
-    - --providers.docker.exposedbydefault=false
+    command:
+      - --api.dashboard=true
+      - --api.insecure=true
+      - --providers.docker=true
+      - --providers.docker.exposedbydefault=false
 
-    - --entrypoints.web.address=:80
-    - --entrypoints.websecure.address=:443
+      - --entrypoints.web.address=:80
+      - --entrypoints.websecure.address=:443
 
-    - --entrypoints.web.http.redirections.entrypoint.to=websecure
-    - --entrypoints.web.http.redirections.entrypoint.scheme=https
+      - --entrypoints.web.http.redirections.entrypoint.to=websecure
+      - --entrypoints.web.http.redirections.entrypoint.scheme=https
 
-    - --certificatesresolvers.myresolver.acme.tlschallenge=true
-    - --certificatesresolvers.myresolver.acme.email=${EMAIL}
-    - --certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json
+      - --certificatesresolvers.myresolver.acme.tlschallenge=true
+      - --certificatesresolvers.myresolver.acme.email=${EMAIL}
+      - --certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json
 
-  ports:
-    - "80:80"
-    - "443:443"
-    - "8080:8080"
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8080:8080"
 
-  volumes:
-    - /var/run/docker.sock:/var/run/docker.sock:ro
-    - ./letsencrypt:/letsencrypt
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./letsencrypt:/letsencrypt
 
-  networks:
-    - web
+    networks:
+      - web
 
   portainer:
     image: portainer/portainer-ce:latest
