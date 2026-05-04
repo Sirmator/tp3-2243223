@@ -1,37 +1,39 @@
 services:
 
   traefik:
-    image: traefik:v3.0
-    container_name: traefik
-    command:
-      - --api.dashboard=true
-      - --api.insecure=true
-      - --providers.docker=true
-      - --providers.docker.exposedbydefault=false
+  image: traefik:v3.0
+  container_name: traefik
 
-      - --entrypoints.web.address=:80
-      - --entrypoints.websecure.address=:443
+  environment:
+    - DOCKER_API_VERSION=1.41
 
-      # redirect HTTP → HTTPS
-      - --entrypoints.web.http.redirections.entrypoint.to=websecure
-      - --entrypoints.web.http.redirections.entrypoint.scheme=https
+  command:
+    - --api.dashboard=true
+    - --api.insecure=true
+    - --providers.docker=true
+    - --providers.docker.exposedbydefault=false
 
-      # Let's Encrypt
-      - --certificatesresolvers.myresolver.acme.tlschallenge=true
-      - --certificatesresolvers.myresolver.acme.email=${EMAIL}
-      - --certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json
+    - --entrypoints.web.address=:80
+    - --entrypoints.websecure.address=:443
 
-    ports:
-      - "80:80"
-      - "443:443"
-      - "8080:8080"
+    - --entrypoints.web.http.redirections.entrypoint.to=websecure
+    - --entrypoints.web.http.redirections.entrypoint.scheme=https
 
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-      - ./letsencrypt:/letsencrypt
+    - --certificatesresolvers.myresolver.acme.tlschallenge=true
+    - --certificatesresolvers.myresolver.acme.email=${EMAIL}
+    - --certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json
 
-    networks:
-      - web
+  ports:
+    - "80:80"
+    - "443:443"
+    - "8080:8080"
+
+  volumes:
+    - /var/run/docker.sock:/var/run/docker.sock:ro
+    - ./letsencrypt:/letsencrypt
+
+  networks:
+    - web
 
   portainer:
     image: portainer/portainer-ce:latest
