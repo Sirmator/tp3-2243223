@@ -1,13 +1,13 @@
 services:
   traefik:
-    image: traefik:v3.3
+    image: traefik:v2.11
     container_name: traefik
     restart: always
     command:
       - --api.dashboard=true
       - --api.insecure=true
       - --providers.docker=true
-      - --providers.docker.endpoint=tcp://socat:2375
+      - --providers.docker.endpoint=unix:///var/run/docker.sock
       - --providers.docker.exposedbydefault=false
       - --entrypoints.web.address=:80
       - --entrypoints.websecure.address=:443
@@ -21,19 +21,8 @@ services:
       - "443:443"
       - "8080:8080"
     volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
       - ./letsencrypt:/letsencrypt
-    networks:
-      - web
-    depends_on:
-      - socat
-
-  socat:
-    image: alpine/socat:latest
-    container_name: socat
-    restart: always
-    command: TCP-LISTEN:2375,fork,reuseaddr UNIX-CONNECT:/var/run/docker.sock
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:rw
     networks:
       - web
 
