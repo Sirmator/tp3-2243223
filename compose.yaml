@@ -1,5 +1,3 @@
-version: "3.8"
-
 services:
 
   traefik:
@@ -7,69 +5,122 @@ services:
     container_name: traefik
     command:
       - --api.dashboard=true
+      - --api.insecure=true
+
       - --providers.docker=true
       - --providers.docker.exposedbydefault=false
+
       - --entrypoints.web.address=:80
       - --entrypoints.websecure.address=:443
+
+      # HTTP → HTTPS redirect
+      - --entrypoints.web.http.redirections.entrypoint.to=websecure
+      - --entrypoints.web.http.redirections.entrypoint.scheme=https
+
+      # Let's Encrypt
       - --certificatesresolvers.myresolver.acme.tlschallenge=true
-      - --certificatesresolvers.myresolver.acme.email=${EMAIL}
+      - --certificatesresolvers.myresolver.acme.email=eliesdude25@gmail.com
       - --certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json
+
     ports:
       - "80:80"
       - "443:443"
+      - "8080:8080"
+
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./letsencrypt:/letsencrypt
+
     networks:
       - web
 
+
   portainer:
-    image: portainer/portainer-ce
+    image: portainer/portainer-ce:latest
     container_name: portainer
+    command: -H unix:///var/run/docker.sock
+
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.portainer.rule=Host(`portainer.${DOMAIN}`)"
+      - "traefik.http.routers.portainer.rule=Host(`portainer.tp3-2243223.duckdns.org`)"
       - "traefik.http.routers.portainer.entrypoints=websecure"
       - "traefik.http.routers.portainer.tls.certresolver=myresolver"
       - "traefik.http.services.portainer.loadbalancer.server.port=9000"
+
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - portainer_data:/data
+
     networks:
       - web
 
+
   nextcloud:
-    image: nextcloud
+    image: nextcloud:latest
     container_name: nextcloud
+
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.nextcloud.rule=Host(`nextcloud.${DOMAIN}`)"
+      - "traefik.http.routers.nextcloud.rule=Host(`nextcloud.tp3-2243223.duckdns.org`)"
       - "traefik.http.routers.nextcloud.entrypoints=websecure"
       - "traefik.http.routers.nextcloud.tls.certresolver=myresolver"
       - "traefik.http.services.nextcloud.loadbalancer.server.port=80"
+
     volumes:
       - nextcloud_data:/var/www/html
+
     networks:
       - web
 
+
   plex:
-    image: linuxserver/plex
+    image: linuxserver/plex:latest
     container_name: plex
+
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=America/Toronto
+
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.plex.rule=Host(`plex.${DOMAIN}`)"
+      - "traefik.http.routers.plex.rule=Host(`plex.tp3-2243223.duckdns.org`)"
       - "traefik.http.routers.plex.entrypoints=websecure"
       - "traefik.http.routers.plex.tls.certresolver=myresolver"
       - "traefik.http.services.plex.loadbalancer.server.port=32400"
+
     volumes:
       - plex_data:/config
+
     networks:
       - web
+
+
+  paperless:
+    image: paperlessngx/paperless-ngx:latest
+    container_name: paperless
+
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.paperless.rule=Host(`paperless.tp3-2243223.duckdns.org`)"
+      - "traefik.http.routers.paperless.entrypoints=websecure"
+      - "traefik.http.routers.paperless.tls.certresolver=myresolver"
+      - "traefik.http.services.paperless.loadbalancer.server.port=8000"
+
+    volumes:
+      - paperless_data:/usr/src/paperless/data
+
+    networks:
+      - web
+
 
 volumes:
   portainer_data:
   nextcloud_data:
   plex_data:
+  paperless_data:
+
 
 networks:
   web:
+    driver: bridge
